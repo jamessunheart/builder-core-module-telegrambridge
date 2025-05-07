@@ -1,5 +1,5 @@
 from telegram import Update, Bot
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
 from ConversationalShell import ConversationalShell
 
 class TelegramBridge:
@@ -12,14 +12,17 @@ class TelegramBridge:
         dp.add_handler(MessageHandler(Filters.text & ~Filters.command, self.handle_message))
 
     def handle_message(self, update: Update, context: CallbackContext):
-        if str(update.message.chat.username) != self.allowed_user:
+        username = str(update.message.chat.username)
+        print(f"[DEBUG] Incoming message from: {username} | Text: {update.message.text}")
+        if username != self.allowed_user:
             context.bot.send_message(chat_id=update.effective_chat.id, text="Access denied.")
             return
         user_input = update.message.text
         response = self.shell.receive_message(user_input)
+        print(f"[DEBUG] Builder Core response: {response}")
         context.bot.send_message(chat_id=update.effective_chat.id, text=response)
 
     def start(self):
-        print("TelegramBridge is live.")
+        print("[DEBUG] TelegramBridge is live and polling.")
         self.updater.start_polling()
         self.updater.idle()
