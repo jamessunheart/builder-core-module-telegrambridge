@@ -12,17 +12,20 @@ class TelegramBridge:
         dp.add_handler(MessageHandler(Filters.text & ~Filters.command, self.handle_message))
 
     def handle_message(self, update: Update, context: CallbackContext):
-        username = str(update.message.chat.username)
-        print(f"[DEBUG] Incoming message from: {username} | Text: {update.message.text}")
-        if username != self.allowed_user:
-            context.bot.send_message(chat_id=update.effective_chat.id, text="Access denied.")
-            return
-        user_input = update.message.text
-        response = self.shell.receive_message(user_input)
-        print(f"[DEBUG] Builder Core response: {response}")
-        context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+        try:
+            username = str(update.message.chat.username)
+            user_input = update.message.text
+            print(f"[TRACE] From: {username} | Msg: {user_input}")
+            if username != self.allowed_user:
+                context.bot.send_message(chat_id=update.effective_chat.id, text="Access denied.")
+                return
+            # TEMPORARY RESPONSE OVERRIDE
+            response = "Hello from Builder Core. This confirms connection."
+            context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+        except Exception as e:
+            print(f"[ERROR] Exception in TelegramBridge: {str(e)}")
 
     def start(self):
-        print("[DEBUG] TelegramBridge is live and polling.")
+        print("[TRACE] TelegramBridge is now polling...")
         self.updater.start_polling()
         self.updater.idle()
